@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.7)
 
+add_definitions(/ZI)
+
 add_library(video_render
 	renderer.h
 	renderer.cpp
