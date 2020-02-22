@@ -10,7 +10,7 @@ add_library(video_render
 	)
 
 target_include_directories(video_render PUBLIC 
-	#$<BUILD_INTERFACE:${BOOST_LIB}>
+	 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 	#$<BUILD_INTERFACE:${ABSL_PATH}>
 	)
 	#[==[
