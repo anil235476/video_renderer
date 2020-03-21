@@ -162,17 +162,21 @@ namespace grt {
 			return false;
 
 		unsigned char *data = (unsigned char*)lock.pBits;
-		//int pitch = lock.Pitch;
+		int pitch = lock.Pitch;
+		if (pitch == width_)
+			memcpy(data, yuv_buffer, buff_size_);
+		else {
+			const auto half_width{ width_ >> 1 };
+			const auto half_height{ height_ >> 1 };
+			const auto half_pitch{ pitch >> 1 };
 
-		memcpy(data, yuv_buffer, buff_size_);	//todo : This will be removed when frame will come with it's stride/pitch info.
-		//data = copy_to_memory(yuv_buffer, width_, height_, data, pitch, width_);
-		/*const auto half_width{ width_ >> 1 };
-		const auto half_height{ height_ >> 1 };
-		const auto half_pitch{ pitch >> 1 };
-		
-		data = copy_to_memory(yuv_buffer, width_, height_, data, pitch, width_);
-		data = copy_to_memory(yuv_buffer, half_width, half_height, data, half_pitch, half_width);
-		data = copy_to_memory(yuv_buffer, half_width, half_height, data, half_pitch, half_width);*/
+			const int u_start = (width_ * height_);
+			const int v_start = (u_start + (half_width * half_height));
+
+			data = copy_to_memory(yuv_buffer, width_, height_, data, pitch, width_);
+			data = copy_to_memory(yuv_buffer + u_start, half_width, half_height, data, half_pitch, half_width);
+			data = copy_to_memory(yuv_buffer + v_start, half_width, half_height, data, half_pitch, half_width);
+		}
 
 		surface_->UnlockRect();
 		return true;
