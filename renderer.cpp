@@ -1,6 +1,7 @@
 
 #include "renderer.h"
 #include "dirextx_render.h"
+#include <cassert>
 
 namespace grt {
 	
@@ -31,6 +32,13 @@ namespace grt {
 		
 		frame_info frame(yuv_buf, w, h, frame_type::YUV420);
 		return frame;
+	}
+
+	frame_info make_frame_info(const char* data, int w, int h, int size, frame_type type) {
+		assert(type == frame_type::RGB || type == frame_type::RGBA);
+		unsigned char* rgb = new unsigned char[size];
+		memcpy(rgb, data, size);
+		return frame_info{ rgb, w, h, type };
 	}
 
 	void clean(frame_info info) {
