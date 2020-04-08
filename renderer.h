@@ -3,7 +3,7 @@
 #include <memory>
 
 namespace grt {
-	enum class frame_type {RGB, YUV420, UNDEFINED};
+	enum class frame_type {RGB, YUV420, RGBA, UNDEFINED};
 	struct frame_info {
 		frame_info(unsigned char* data, int w, int h, frame_type type) :frame_data_{ data }, width_{ w }, height_{ h }, type_{type} {
 		}
@@ -16,6 +16,7 @@ namespace grt {
 	frame_info make_frame_info(const uint8_t* y, 
 		const uint8_t* u, const uint8_t* v,
 		size_t y_pitch, size_t u_pitch, size_t v_pitch, int w, int h);
+	frame_info make_frame_info(const char* data, int w, int h, int size, frame_type);
 	void clean(frame_info);
 	class renderer {
 	public:
