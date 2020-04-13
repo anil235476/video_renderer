@@ -33,7 +33,12 @@ namespace grt {
 		return frame;
 	}
 
+	frame_info make_frame_info(const uint8_t* data, int w, int h) {
+		return frame_info{ /*static_cast<const unsigned char*>*/ (data), w, h, frame_type::RGB };
+	}
+
 	void clean(frame_info info) {
+		if(frame_type::YUV420 == info.type_)
 		delete[]info.frame_data_;
 	}
 
