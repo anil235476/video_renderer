@@ -116,17 +116,17 @@ namespace grt {
 			return false;
 
 		unsigned char *data = (unsigned char*)lock.pBits;
-		/*int pitch = lock.Pitch;
+		int const pitch = lock.Pitch;
+		const auto source_pitch = width_ * 4;
+		assert(pitch >= source_pitch);
+		
+		const unsigned char* temp = rgb_buffer;
 
-		unsigned char* temp = const_cast<unsigned char*>(rgb_buffer);
-				
-		for (int k = 0; k < 4; k++)
-			for (int i = 0; i < height_; i++) {
-				memcpy(data, temp, width_);
-				data += width_;
-				temp += (width_);
-			}*/
-		memcpy(data, rgb_buffer, buff_size_); //todo : This will be removed when frame will come with it's stride/pitch info.
+		for (int i = 0; i < height_; i++) {
+			memcpy(data, temp, source_pitch);
+			data += pitch;
+			temp += (source_pitch);
+		}
 		surface_->UnlockRect();
 
 		return true;
