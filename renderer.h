@@ -1,6 +1,7 @@
 #ifndef __RENDERER__
 #define __RENDERER__
 #include <memory>
+#include <string>
 
 namespace grt {
 	enum class frame_type {RGB, YUV420, UNDEFINED};
@@ -21,6 +22,7 @@ namespace grt {
 	class renderer {
 	public:
 		virtual void render_frame(void* hwnd, frame_info frame)=0;
+		virtual void render_name(void* hwnd, std::string name) = 0;
 	};
 
 	std::unique_ptr<renderer>

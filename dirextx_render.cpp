@@ -1,10 +1,15 @@
 
 #include "dirextx_render.h"
 #include <cassert>
+#include <string>
+
 using namespace std;
 
 namespace grt {
 		
+	void directx_render::render_name(void* hwnd, std::string name) {
+		name_ = std::wstring{ name.begin(), name.end() };
+	}
 	bool directx_render::validate_dx_device(const int width, const int  height, frame_type frame_format) {
 		if (d3d9_ && (width_ == width) && (height_ == height) && type_frame_ == frame_format)
 			return true;
@@ -182,6 +187,29 @@ namespace grt {
 		return true;
 	}
 
+	void directx_render::draw_name(std::wstring const& name) {
+		HDC surfaceDC = nullptr;
+		assert(surface_.get());
+		if (surface_.get()->GetDC(&surfaceDC) == D3D_OK)
+		{
+			 //SetBkColor(surfaceDC, 0x7D000000);
+			//SetBkMode(surfaceDC, TRANSPARENT);
+			SetTextAlign(surfaceDC, TA_TOP | TA_LEFT);
+			COLORREF color = 0x000000ff;//red color
+			SetTextColor(surfaceDC, color);
+
+			// Draw a the time to the surface
+			const auto r = ExtTextOut(surfaceDC, 0, 0, /*ETO_CLIPPED |*/ ETO_OPAQUE, NULL, name.c_str(), name.size(), NULL);
+			assert(r);
+			surface_.get()->ReleaseDC(surfaceDC);
+		}
+		else {
+			/*const auto error = GetLastError();
+			MessageBox(NULL, std::to_wstring(error).c_str(), TEXT("Error"), MB_OK);*/
+			assert(false);
+		}
+	}
+
 	void directx_render::render(const HWND hwnd) {
 		/*Applications must call IDirect3DDevice9::BeginScene before performing
 		any rendering and must call IDirect3DDevice9::EndScene when rendering is
@@ -193,6 +221,8 @@ namespace grt {
 			if (FAILED(d3_device_->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &BackBuffer)))
 				MessageBox(NULL, TEXT("GetBackBuffer"), TEXT("Error"), MB_OK);	//todo: this messagebox has to be removed with throw.
 
+			this->draw_name(name_);
+		
 
 			//Copies rectangular subsets of pixels from one surface to another.
 			if (FAILED(d3_device_->StretchRect(surface_.get(), NULL, BackBuffer, NULL, D3DTEXF_LINEAR)))

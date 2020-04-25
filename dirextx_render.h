@@ -6,6 +6,7 @@
 #include <d3d9.h>
 #include <memory>
 #include "renderer.h"
+#include <string>
 
 #define D3DFMT_I420 (D3DFORMAT)MAKEFOURCC('I','4','2','0')
 namespace grt {
@@ -22,6 +23,7 @@ namespace grt {
 	class directx_render :public renderer {
 	public:
 		void render_frame(void* hwnd, const frame_info frame) override;
+		void render_name(void* hwnd, std::string name) override;
 
 	private:
 		bool validate_dx_device(const int width, const int  height, frame_type frame_format);
@@ -29,6 +31,7 @@ namespace grt {
 		bool copy_yuv_data_to_surface(const unsigned char* yuv_buffer);
 		bool (directx_render::*copy_data_to_surface)(const unsigned char* raw_buffer);
 		void render(const HWND hwnd);
+		void draw_name(std::wstring const& name);
 
 	private:
 		int width_{ 0 };
@@ -38,6 +41,9 @@ namespace grt {
 		wrapper<IDirect3D9> d3d9_{ nullptr };
 		wrapper<IDirect3DDevice9>  d3_device_{ nullptr };
 		wrapper<IDirect3DSurface9>  surface_{ nullptr };
+		std::wstring name_;
+
+
 	};
 } //grt
 #endif
