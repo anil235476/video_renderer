@@ -13,8 +13,7 @@ target_include_directories(video_render PUBLIC
 	 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 	#$<BUILD_INTERFACE:${ABSL_PATH}>
 	)
-	#[==[
-set_target_properties(video_render PROPERTIES 
-	CXX_STANDARD 17
-	)
-	#]==]
+target_link_libraries(video_render 
+ PUBLIC
+ utility
+ )
