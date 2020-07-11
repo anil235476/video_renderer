@@ -10,6 +10,11 @@ namespace grt {
 	void directx_render::render_name(void* hwnd, std::string name) {
 		name_ = std::wstring{ name.begin(), name.end() };
 	}
+
+	void directx_render::set_active(bool flag) {
+		is_active_ = flag;
+	}
+
 	bool directx_render::validate_dx_device(const int width, const int  height, frame_type frame_format) {
 		if (d3d9_ && (width_ == width) && (height_ == height) && type_frame_ == frame_format)
 			return true;
@@ -187,20 +192,44 @@ namespace grt {
 		return true;
 	}
 
+	void DrawFrameAroundWindow(HWND hWnd, HDC hWindowDc, int width, int height)
+	{
+		HBRUSH hBrush = CreateSolidBrush(RGB(0, 0, 255)); //red color
+		HRGN Rgn = CreateRectRgn(0, 0, width, height);
+		
+		SetROP2(hWindowDc, R2_MERGEPENNOT);
+		const auto r = FrameRgn(hWindowDc, Rgn, hBrush, 2, 2);
+		assert(r);
+		::DeleteObject(Rgn);
+		::DeleteObject(hBrush);
+
+	}
+
 	void directx_render::draw_name(std::wstring const& name) {
 		HDC surfaceDC = nullptr;
 		assert(surface_.get());
 		if (surface_.get()->GetDC(&surfaceDC) == D3D_OK)
 		{
-			 //SetBkColor(surfaceDC, 0x7D000000);
+			 SetBkColor(surfaceDC, 0x00000000);
 			//SetBkMode(surfaceDC, TRANSPARENT);
 			SetTextAlign(surfaceDC, TA_TOP | TA_LEFT);
-			COLORREF color = 0x000000ff;//red color
+			COLORREF color = 0x00ffffff;//red color
 			SetTextColor(surfaceDC, color);
 
-			// Draw a the time to the surface
-			const auto r = ExtTextOut(surfaceDC, 0, 0, /*ETO_CLIPPED |*/ ETO_OPAQUE, NULL, name.c_str(), name.size(), NULL);
-			assert(r);
+			{
+				// Draw a the time to the surface
+				D3DSURFACE_DESC desc;
+				surface_.get()->GetDesc(&desc);
+				const auto r = ExtTextOut(surfaceDC, 0, desc.Height - 20, /*ETO_CLIPPED |*/ ETO_OPAQUE, NULL, name.c_str(), name.size(), NULL);
+				assert(r);
+			}
+			if (is_active_) {
+				//todo: refactor this
+				D3DSURFACE_DESC desc;
+				surface_.get()->GetDesc(&desc);
+				DrawFrameAroundWindow(NULL, surfaceDC, desc.Width, desc.Height);
+			}
+			
 			surface_.get()->ReleaseDC(surfaceDC);
 		}
 		else {
