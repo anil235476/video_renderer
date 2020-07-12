@@ -193,28 +193,34 @@ namespace grt {
 		return true;
 	}
 
-	RECT getDistinationRectForFrame(HWND hwnd, int frame_w, int frame_h) {
+	int get_width_with_aspect(int wnd_h, int frame_w, int frame_h) {
+		if (frame_h > frame_w) {
+			//mobile case
+			float const aspect = float(frame_h) / float(frame_w);
+			const float width = float(wnd_h) / aspect;
+			return width;
+		}
+		else {
+			float const aspect = float(frame_w) / float(frame_h);
+			const float width = float(wnd_h) *aspect;
+			return width;
+		}
+	}
+
+
+	auto getDistinationRectForFrame(HWND hwnd, int frame_w, int frame_h) {
 		RECT rect_;
 		const auto r = GetClientRect(hwnd, &rect_);
+		assert(r);
+	
+		const int width = get_width_with_aspect(rect_.bottom, frame_w, frame_h);
+		
+		if ((rect_.right < width))
+			return rect_;//
 
-		auto distination_width_getter = [](int wnd_h, int frame_w, int frame_h) {
-									if (frame_h > frame_w) {
-										//mobile case
-										float const aspect = float(frame_h) / float(frame_w);
-										const float width = float(wnd_h) / aspect;
-										return width;
-									}
-									else {
-										float const aspect = float(frame_w) / float(frame_h);
-										const float width = float(wnd_h) *aspect;
-										return width;
-									}
-							};
-		const int width = distination_width_getter(rect_.bottom, frame_w, frame_h);
-		assert(rect_.right >= width);//window width should not be less then destination widht
-		const int margin = rect_.right - width;
-		rect_.left = margin / 2;
-		rect_.right = rect_.right - margin / 2;
+		const int margin = (rect_.right - width);
+	    rect_.left = rect_.left + margin/2 ;
+		rect_.right = rect_.right - margin/2;
 		return rect_;
 		
 	}
@@ -229,8 +235,9 @@ namespace grt {
 			//Retrieves a back buffer from the device's swap chain.
 			if (FAILED(d3_device_->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &BackBuffer)))
 				MessageBox(NULL, TEXT("GetBackBuffer"), TEXT("Error"), MB_OK);	//todo: this messagebox has to be removed with throw.
+			
 			util::draw_text(name_, surface_.get(), width_, height_);
-			//this->draw_name(name_);
+
 			if (is_active_)
 				util::draw_frame_around(surface_.get(), width_, height_);
 
@@ -241,10 +248,9 @@ namespace grt {
 			BackBuffer->Release();
 			d3_device_->EndScene();
 		}
-		
-		RECT const rect_ = getDistinationRectForFrame(hwnd, width_, height_);
-		
-		d3_device_->Present(0, &rect_, hwnd, 0);
+
+		const RECT temp = getDistinationRectForFrame(hwnd, width_, height_);
+		d3_device_->Present(0, &temp, hwnd, 0);
 	}
 
 }// grt
