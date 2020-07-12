@@ -2,6 +2,7 @@
 #include "dirextx_render.h"
 #include <cassert>
 #include <string>
+#include <windows_util.h>
 
 using namespace std;
 
@@ -10,6 +11,11 @@ namespace grt {
 	void directx_render::render_name(void* hwnd, std::string name) {
 		name_ = std::wstring{ name.begin(), name.end() };
 	}
+
+	void directx_render::set_active(bool flag) {
+		is_active_ = flag;
+	}
+
 	bool directx_render::validate_dx_device(const int width, const int  height, frame_type frame_format) {
 		if (d3d9_ && (width_ == width) && (height_ == height) && type_frame_ == frame_format)
 			return true;
@@ -55,7 +61,7 @@ namespace grt {
 		D3DPRESENT_PARAMETERS D3DParameter;
 		ZeroMemory(&D3DParameter, sizeof(D3DParameter));                       // clear out the struct for use
 		D3DParameter.Windowed = true;                                // program fullscreen, not windowed
-		D3DParameter.SwapEffect = D3DSWAPEFFECT_DISCARD;               // discard old frames
+		D3DParameter.SwapEffect = D3DSWAPEFFECT_COPY;//D3DSWAPEFFECT_DISCARD;               // discard old frames
 		D3DParameter.BackBufferFormat = d3ddm.Format;
 		D3DParameter.BackBufferWidth = width;                        // set the width of the buffer
 		D3DParameter.BackBufferHeight = height;                      // set the height of the buffer
@@ -187,27 +193,30 @@ namespace grt {
 		return true;
 	}
 
-	void directx_render::draw_name(std::wstring const& name) {
-		HDC surfaceDC = nullptr;
-		assert(surface_.get());
-		if (surface_.get()->GetDC(&surfaceDC) == D3D_OK)
-		{
-			 //SetBkColor(surfaceDC, 0x7D000000);
-			//SetBkMode(surfaceDC, TRANSPARENT);
-			SetTextAlign(surfaceDC, TA_TOP | TA_LEFT);
-			COLORREF color = 0x000000ff;//red color
-			SetTextColor(surfaceDC, color);
+	RECT getDistinationRectForFrame(HWND hwnd, int frame_w, int frame_h) {
+		RECT rect_;
+		const auto r = GetClientRect(hwnd, &rect_);
 
-			// Draw a the time to the surface
-			const auto r = ExtTextOut(surfaceDC, 0, 0, /*ETO_CLIPPED |*/ ETO_OPAQUE, NULL, name.c_str(), name.size(), NULL);
-			assert(r);
-			surface_.get()->ReleaseDC(surfaceDC);
-		}
-		else {
-			/*const auto error = GetLastError();
-			MessageBox(NULL, std::to_wstring(error).c_str(), TEXT("Error"), MB_OK);*/
-			assert(false);
-		}
+		auto distination_width_getter = [](int wnd_h, int frame_w, int frame_h) {
+									if (frame_h > frame_w) {
+										//mobile case
+										float const aspect = float(frame_h) / float(frame_w);
+										const float width = float(wnd_h) / aspect;
+										return width;
+									}
+									else {
+										float const aspect = float(frame_w) / float(frame_h);
+										const float width = float(wnd_h) *aspect;
+										return width;
+									}
+							};
+		const int width = distination_width_getter(rect_.bottom, frame_w, frame_h);
+		assert(rect_.right >= width);//window width should not be less then destination widht
+		const int margin = rect_.right - width;
+		rect_.left = margin / 2;
+		rect_.right = rect_.right - margin / 2;
+		return rect_;
+		
 	}
 
 	void directx_render::render(const HWND hwnd) {
@@ -220,9 +229,10 @@ namespace grt {
 			//Retrieves a back buffer from the device's swap chain.
 			if (FAILED(d3_device_->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &BackBuffer)))
 				MessageBox(NULL, TEXT("GetBackBuffer"), TEXT("Error"), MB_OK);	//todo: this messagebox has to be removed with throw.
-
-			this->draw_name(name_);
-		
+			util::draw_text(name_, surface_.get(), width_, height_);
+			//this->draw_name(name_);
+			if (is_active_)
+				util::draw_frame_around(surface_.get(), width_, height_);
 
 			//Copies rectangular subsets of pixels from one surface to another.
 			if (FAILED(d3_device_->StretchRect(surface_.get(), NULL, BackBuffer, NULL, D3DTEXF_LINEAR)))
@@ -231,7 +241,10 @@ namespace grt {
 			BackBuffer->Release();
 			d3_device_->EndScene();
 		}
-		d3_device_->Present(0, 0, hwnd, 0);
+		
+		RECT const rect_ = getDistinationRectForFrame(hwnd, width_, height_);
+		
+		d3_device_->Present(0, &rect_, hwnd, 0);
 	}
 
 }// grt

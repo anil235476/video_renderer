@@ -16,4 +16,6 @@ target_include_directories(video_render PUBLIC
 target_link_libraries(video_render 
  PUBLIC
  utility
+ PRIVATE
+ windows_util
  )

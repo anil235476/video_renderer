@@ -24,14 +24,13 @@ namespace grt {
 	public:
 		void render_frame(void* hwnd, const frame_info frame) override;
 		void render_name(void* hwnd, std::string name) override;
-
+		void set_active(bool flag) override;
 	private:
 		bool validate_dx_device(const int width, const int  height, frame_type frame_format);
 		bool copy_rgb_data_to_surface(const unsigned char* rgb_buffer);
 		bool copy_yuv_data_to_surface(const unsigned char* yuv_buffer);
 		bool (directx_render::*copy_data_to_surface)(const unsigned char* raw_buffer);
 		void render(const HWND hwnd);
-		void draw_name(std::wstring const& name);
 
 	private:
 		int width_{ 0 };
@@ -42,6 +41,7 @@ namespace grt {
 		wrapper<IDirect3DDevice9>  d3_device_{ nullptr };
 		wrapper<IDirect3DSurface9>  surface_{ nullptr };
 		std::wstring name_;
+		bool is_active_{ false };
 
 
 	};
