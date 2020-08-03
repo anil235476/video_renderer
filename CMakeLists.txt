@@ -7,6 +7,8 @@ add_library(video_render
 	renderer.cpp
 	dirextx_render.h
 	dirextx_render.cpp
+	gstreamer_render.h
+	gstreamer_render.cpp
 	)
 
 target_include_directories(video_render PUBLIC 
@@ -18,4 +20,5 @@ target_link_libraries(video_render
  utility
  PRIVATE
  windows_util
+ gstreamer_interface
  )
