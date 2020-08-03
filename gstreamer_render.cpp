@@ -4,9 +4,17 @@
 namespace grt {
 
 
+	gstreamer_renderer::~gstreamer_renderer() {
+		assert(!gstreamer_id_.empty());
+		gst::release_source(gstreamer_id_);
+	}
+
 	void gstreamer_renderer::render_frame(void* hwnd, frame_info frame) {
 		if (frame.width_ != width_ || frame.height_ != heigh_) {
-			assert(gstreamer_id_.empty());//todo: when it is false need to handle by reseting source
+			if (!gstreamer_id_.empty()) {
+				gst::release_source(gstreamer_id_);
+			}
+			//assert();//todo: when it is false need to handle by reseting source
 			gstreamer_id_ = gst::allocate_source(frame);
 			assert(!gstreamer_id_.empty());
 			width_ = frame.width_;

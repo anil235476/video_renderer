@@ -4,6 +4,7 @@
 namespace grt {
 	class gstreamer_renderer : public renderer {
 	public:
+		~gstreamer_renderer() override;
 		void render_frame(void* hwnd, frame_info frame) override;
 		void render_name(void* hwnd, std::string name) override;
 		void set_active(bool flag) override;
