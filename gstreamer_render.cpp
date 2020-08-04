@@ -12,10 +12,12 @@ namespace grt {
 	void gstreamer_renderer::render_frame(void* hwnd, frame_info frame) {
 		if (frame.width_ != width_ || frame.height_ != heigh_) {
 			if (!gstreamer_id_.empty()) {
-				gst::release_source(gstreamer_id_);
+				gst::update_source(gstreamer_id_, frame);
 			}
-			//assert();//todo: when it is false need to handle by reseting source
-			gstreamer_id_ = gst::allocate_source(frame);
+			else {
+				gstreamer_id_ = gst::allocate_source(frame);
+			}
+			
 			assert(!gstreamer_id_.empty());
 			width_ = frame.width_;
 			heigh_ = frame.height_;
